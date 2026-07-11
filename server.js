@@ -1,6 +1,6 @@
 // 1. Configuração de conexão com o seu banco de dados
 // Subastitua os valores abaixo com as informações do seu painel do Supabase
-const SUPABASE_URL = https://supabase.com/dashboard/project/wdjfwtckllamgjmqiurf";
+const SUPABASE_URL = "https://wdjfwtckllamgjmqiurf.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_5_lemuRE8Q4I0At4JsNxJQ__8b88vbs";
 
 // Inicializa a biblioteca do Supabase
